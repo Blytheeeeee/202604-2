@@ -1,6 +1,5 @@
 const assets = {
-  heroBook: "./assets/figma/homeHeroBookRaw-20260423.png",
-  heroBookMask: "./assets/figma/homeHeroBookMask-20260423.svg",
+  heroBook: "./assets/figma/homeHeroBg211-20260423.png",
   hospitalCross: "./assets/figma/hospitalCross-5a9cb186-c135-4248-81e5-2c56d09cbdd6.svg",
   wardIcon: "./assets/figma/wardIcon-c6074d03-0395-4b28-b282-8d8f4e117a65.svg",
   cardBg: "./assets/figma/cardBg-3e5e8b30-d7cd-4265-816c-1448764ee611.svg",
@@ -1793,7 +1792,7 @@ function renderHomeBody() {
           <div class="hero-base"></div>
           <div
             class="hero-book-layer"
-            style="background-image:url('${assets.heroBook}');-webkit-mask-image:url('${assets.heroBookMask}');mask-image:url('${assets.heroBookMask}');"
+            style="background-image:url('${assets.heroBook}');"
           ></div>
         </div>
 
