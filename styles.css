@@ -3328,34 +3328,46 @@ span.article-detail-pager-item {
     width: 100%;
   }
 
-  .hero-background,
+  .hero {
+    height: 49.6vw;
+  }
+
+  .hero-background {
+    left: 0;
+    top: -23.4667vw;
+    width: 100%;
+    height: 73.0667vw;
+  }
+
   .hero-base {
     left: 0;
-    right: 0;
-    width: auto;
+    top: 0;
+    width: 100%;
+    height: 100%;
   }
 
   .hero-blur-layer {
-    left: 0;
-    right: 0;
-    top: 0;
-    width: auto;
-    height: 274px;
-    background-position: center top;
-    background-size: cover;
-    -webkit-mask-image: none !important;
-    mask-image: none !important;
+    left: -125.1387vw;
+    top: -22.9493vw;
+    width: 297.7467vw;
+    height: 167.4827vw;
+    background-size: 100% 100%;
+    -webkit-mask-size: 100vw 68.8664vw;
+    mask-size: 100vw 68.8664vw;
+    -webkit-mask-position: 125.14vw 22.9493vw;
+    mask-position: 125.14vw 22.9493vw;
   }
 
   .hero-book-layer {
-    right: -2.5vw;
-    top: 78px;
-    width: 86.17vw;
-    height: 41.69vw;
-    background-position: center top;
-    background-size: 100% auto;
-    -webkit-mask-image: none !important;
-    mask-image: none !important;
+    right: -2.512vw;
+    top: 20.8vw;
+    width: 86.1731vw;
+    height: 41.6933vw;
+    background-size: 86.1731vw 47.5733vw;
+    -webkit-mask-size: 100vw 73.0667vw;
+    mask-size: 100vw 73.0667vw;
+    -webkit-mask-position: -16.3392vw -20.8vw;
+    mask-position: -16.3392vw -20.8vw;
   }
 
   .filters-row {
