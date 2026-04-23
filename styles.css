@@ -2654,20 +2654,14 @@ span.article-detail-pager-item {
 
 .hero-book-layer {
   position: absolute;
-  right: -9.42px;
-  top: 78px;
-  width: 323.149px;
-  height: 156.35px;
+  right: 0;
+  top: 0;
+  width: 375px;
+  height: 274px;
   background-repeat: no-repeat;
-  background-size: 323.149px 178.4px;
-  background-position: 0 0;
-  opacity: 0.9;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 375px 274px;
-  mask-size: 375px 274px;
-  -webkit-mask-position: -61.272px -78px;
-  mask-position: -61.272px -78px;
+  background-size: 100% 100%;
+  background-position: right top;
+  pointer-events: none;
 }
 
 .hospital-row {
@@ -3330,15 +3324,11 @@ span.article-detail-pager-item {
   }
 
   .hero-book-layer {
-    right: -2.512vw;
-    top: 20.8vw;
-    width: 86.1731vw;
-    height: 41.6933vw;
-    background-size: 86.1731vw 47.5733vw;
-    -webkit-mask-size: 100vw 73.0667vw;
-    mask-size: 100vw 73.0667vw;
-    -webkit-mask-position: -16.3392vw -20.8vw;
-    mask-position: -16.3392vw -20.8vw;
+    right: 0;
+    top: 0;
+    width: min(100%, 375px);
+    height: min(73.0667vw, 274px);
+    background-size: 100% 100%;
   }
 
   .filters-row {
