@@ -3282,3 +3282,263 @@ span.article-detail-pager-item {
     justify-content: center;
   }
 }
+
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  html,
+  body,
+  #app {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .stage {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 0;
+    place-items: stretch;
+    background: #ffffff;
+  }
+
+  .phone {
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  .page-scroll,
+  .search-page,
+  .article-list-page,
+  .article-detail-page,
+  .profile-page,
+  .profile-consult-page,
+  .profile-message-page,
+  .profile-personal-page,
+  .live-page {
+    width: 100%;
+  }
+
+  .hero-background,
+  .hero-base {
+    left: 0;
+    right: 0;
+    width: auto;
+  }
+
+  .hero-blur-layer {
+    left: 0;
+    right: 0;
+    top: 0;
+    width: auto;
+    height: 274px;
+    background-position: center top;
+    background-size: cover;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  .hero-book-layer {
+    right: -2.5vw;
+    top: 78px;
+    width: 86.17vw;
+    height: 41.69vw;
+    background-position: center top;
+    background-size: 100% auto;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  .filters-row {
+    min-width: 0;
+  }
+
+  .ward-pill,
+  .search-box {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .ward-pill-label,
+  .search-box span:last-child,
+  .article-list-search span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .content-sheet {
+    width: 100%;
+  }
+
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .article-card {
+    width: 100%;
+  }
+
+  .card-bg {
+    width: calc(100% + 8px);
+  }
+
+  .card-copy {
+    padding-right: 38px;
+  }
+
+  .card-title-arrow {
+    left: auto;
+    right: 10px;
+  }
+
+  .live-background-image,
+  .profile-page-background {
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  .profile-page-background {
+    top: -88px;
+    height: calc(100% + 88px);
+  }
+
+  .live-heading {
+    width: calc(100% - 48px);
+  }
+
+  .live-enter-button {
+    width: min(300px, calc(100% - 48px));
+  }
+
+  .profile-header-card {
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
+
+  .profile-header-inner {
+    right: 12px;
+    width: auto;
+  }
+
+  .profile-user-copy {
+    right: 0;
+    width: auto;
+  }
+
+  .profile-sheet,
+  .profile-menu-list,
+  .profile-menu-item {
+    width: 100%;
+  }
+
+  .profile-message-list {
+    width: 100%;
+  }
+
+  .profile-message-card {
+    width: 100%;
+  }
+
+  .profile-message-card-head {
+    gap: 12px;
+  }
+
+  .profile-message-sender {
+    min-width: 0;
+  }
+
+  .profile-message-sender span,
+  .profile-message-card h3 {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .profile-message-card-head time {
+    flex: 0 0 auto;
+  }
+
+  .profile-personal-save-button {
+    width: calc(100% - 32px);
+  }
+
+  .search-filter-row {
+    min-width: 0;
+  }
+
+  .search-scope-button {
+    width: auto;
+    max-width: 120px;
+    flex: 0 1 auto;
+  }
+
+  .search-page-box {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .article-list-search,
+  .article-list-item,
+  .article-list-divider {
+    width: 100%;
+  }
+
+  .article-list-item h3 {
+    width: calc(100% - 120px);
+  }
+
+  .article-detail-video-card,
+  .article-detail-image {
+    width: calc(100% - 48px);
+    height: auto;
+    aspect-ratio: 322 / 209;
+  }
+
+  .article-detail-video-image {
+    width: 100%;
+    height: 100%;
+  }
+
+  .article-detail-video-tip,
+  .article-detail-intro,
+  .article-detail-section-title,
+  .article-detail-body,
+  .article-detail-source {
+    width: calc(100% - 48px);
+  }
+
+  .article-detail-audio,
+  .article-detail-pager {
+    width: calc(100% - 32px);
+  }
+
+  .article-detail-audio-track {
+    right: 62px;
+    width: auto;
+  }
+
+  .article-detail-footer {
+    padding: 16px;
+  }
+
+  .article-detail-confirm-button {
+    width: 100%;
+  }
+}

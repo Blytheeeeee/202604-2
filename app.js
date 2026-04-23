@@ -1174,12 +1174,11 @@ function getProfilePersonalVisitRows() {
 }
 
 function getArticleAudioProgressWidth() {
-  const minimumWidth = 65;
-  const maximumWidth = 182;
+  const minimumRatio = 65 / 182;
   const playableSpan = appState.articleAudioDurationSeconds - appState.articleAudioStartSeconds;
 
   if (playableSpan <= 0) {
-    return maximumWidth;
+    return "100%";
   }
 
   const progressRatio = Math.max(
@@ -1187,7 +1186,7 @@ function getArticleAudioProgressWidth() {
     Math.min(1, (appState.articleAudioCurrentSeconds - appState.articleAudioStartSeconds) / playableSpan)
   );
 
-  return minimumWidth + (maximumWidth - minimumWidth) * progressRatio;
+  return `${(minimumRatio + (1 - minimumRatio) * progressRatio) * 100}%`;
 }
 
 function syncArticleDetailAudioUI() {
@@ -1200,7 +1199,7 @@ function syncArticleDetailAudioUI() {
   }
 
   if (fillElement) {
-    fillElement.style.width = `${getArticleAudioProgressWidth()}px`;
+    fillElement.style.width = getArticleAudioProgressWidth();
   }
 
   if (playButton) {
@@ -3627,7 +3626,7 @@ function renderArticleDetailBody() {
               </span>
 
               <span class="article-detail-audio-track" aria-hidden="true">
-                <span class="article-detail-audio-fill" data-role="article-audio-fill" style="width:${progressWidth}px"></span>
+                <span class="article-detail-audio-fill" data-role="article-audio-fill" style="width:${progressWidth}"></span>
               </span>
             </section>
 
@@ -3775,7 +3774,7 @@ function renderArticleDetailBody() {
             </span>
 
             <span class="article-detail-audio-track" aria-hidden="true">
-              <span class="article-detail-audio-fill" data-role="article-audio-fill" style="width:${progressWidth}px"></span>
+              <span class="article-detail-audio-fill" data-role="article-audio-fill" style="width:${progressWidth}"></span>
             </span>
           </section>
 
