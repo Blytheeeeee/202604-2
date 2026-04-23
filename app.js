@@ -19,7 +19,7 @@ const assets = {
   iconHomeActive: "./assets/figma/iconHomeActive-6beb2396-ee7c-4f54-a0e7-d4463edfca6b.svg",
   iconLiveInactive: "./assets/figma/iconLiveInactive-13a1bfc8-e670-4b21-94b9-c8f0b9ceb8b9.svg",
   iconMineInactive: "./assets/figma/iconMineInactive-4c585076-9095-4dbe-a140-0cc16eada005.svg",
-  livePageBackground: "./assets/figma/livePageBackground-f704b045-0ce0-4a56-ba29-826ae3054443.png",
+  livePageBackground: "./assets/figma/livePageBackground-20260423-149-3337.png",
   liveBackIcon: "./assets/figma/liveBackIcon-5ce55985-2acd-4646-a2ce-9650889dda3e.svg",
   liveSearchIcon: "./assets/figma/liveSearchIcon-d1a23ff9-25ee-4c82-b5f0-71cc36614a30.svg",
   liveMoreIcon: "./assets/figma/liveMoreIcon-af0288fd-9280-4806-a22d-5d90032f6a12.svg",
@@ -2163,16 +2163,6 @@ function renderLiveBody() {
       <img src="${assets.livePageBackground}" alt="" class="live-background-image" />
 
       <h2 class="live-heading">欢迎进入<br />云上健教直播平台</h2>
-
-      <div class="live-chip live-chip--medical">
-        <span>医护在线直播</span>
-      </div>
-      <div class="live-chip live-chip--expert">
-        <span>专家精品课程</span>
-      </div>
-      <div class="live-chip live-chip--rehab">
-        <span>实用康复指导</span>
-      </div>
 
       <button class="live-enter-button" type="button" data-action="open-live-enter">点击进入</button>
     </section>
