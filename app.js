@@ -1,8 +1,6 @@
 const assets = {
-  heroBlur: "./assets/figma/heroBlur-2e5f7e81-1b95-4e14-ae84-9a0d308e2931.png",
-  heroBlurMask: "./assets/figma/heroBlurMask-dff2e624-920e-47c5-8f03-39da8ea17f35.svg",
-  heroBook: "./assets/figma/heroBook-20260420-31-5965.png",
-  heroBookMask: "./assets/figma/heroBookMask-27be0020-eb6e-4e46-9354-a866951a759b.svg",
+  heroBook: "./assets/figma/homeHeroBookRaw-20260423.png",
+  heroBookMask: "./assets/figma/homeHeroBookMask-20260423.svg",
   hospitalCross: "./assets/figma/hospitalCross-5a9cb186-c135-4248-81e5-2c56d09cbdd6.svg",
   wardIcon: "./assets/figma/wardIcon-c6074d03-0395-4b28-b282-8d8f4e117a65.svg",
   cardBg: "./assets/figma/cardBg-3e5e8b30-d7cd-4265-816c-1448764ee611.svg",
@@ -1793,10 +1791,6 @@ function renderHomeBody() {
       <section class="hero">
         <div class="hero-background">
           <div class="hero-base"></div>
-          <div
-            class="hero-blur-layer"
-            style="background-image:url('${assets.heroBlur}');-webkit-mask-image:url('${assets.heroBlurMask}');mask-image:url('${assets.heroBlurMask}');"
-          ></div>
           <div
             class="hero-book-layer"
             style="background-image:url('${assets.heroBook}');-webkit-mask-image:url('${assets.heroBookMask}');mask-image:url('${assets.heroBookMask}');"
