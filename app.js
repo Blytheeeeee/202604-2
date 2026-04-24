@@ -403,8 +403,6 @@ const app = document.getElementById("app");
 let profileSaveToastTimer = 0;
 let profileRegionData = [];
 let profileRegionDataLoadPromise = null;
-let activeVideoPlayerElement = null;
-let syncVideoPlayerControlUI = null;
 
 function clampArticleDetailIndex(index) {
   return Math.max(0, Math.min(articleListItems.length - 1, index));
@@ -3951,37 +3949,13 @@ function renderVideoPlayerBody() {
     <section class="video-player-page">
       <video
         class="video-player-page-video"
-        data-role="video-player-page"
+        data-role="native-video-player"
         src="${assets.articleDetailVideoFile}"
+        poster="${assets.articleDetailVideoImage}"
+        controls
         autoplay
         preload="auto"
-        playsinline
-        webkit-playsinline="true"
-        x5-playsinline="true"
-        x5-video-player-type="h5-page"
-        x5-video-player-fullscreen="true"
       ></video>
-
-      <button class="video-player-close-button" type="button" data-action="close-video-player" aria-label="退出视频播放">
-        <span aria-hidden="true">&times;</span>
-      </button>
-
-      <button class="video-player-touch-layer" type="button" data-action="toggle-video-player" aria-label="播放或暂停视频">
-        <span class="video-player-center-indicator" data-role="video-player-indicator" aria-hidden="true"></span>
-      </button>
-
-      <div class="video-player-bottom-controls">
-        <input
-          class="video-player-progress"
-          data-role="video-player-progress"
-          type="range"
-          min="0"
-          max="1000"
-          step="1"
-          value="0"
-          aria-label="视频播放进度"
-        />
-      </div>
     </section>
   `;
 }
@@ -4290,73 +4264,34 @@ function setupArticleDetailVideoPreview() {
 }
 
 function setupVideoPlayerPage() {
-  const playerElement = app.querySelector("[data-role='video-player-page']");
-  const toggleButton = app.querySelector(".video-player-touch-layer");
-  const progressElement = app.querySelector("[data-role='video-player-progress']");
-  const indicatorElement = app.querySelector("[data-role='video-player-indicator']");
+  const playerElement = app.querySelector("[data-role='native-video-player']");
 
-  if (!playerElement || !toggleButton || !progressElement || !indicatorElement) {
-    activeVideoPlayerElement = null;
-    syncVideoPlayerControlUI = null;
+  if (!playerElement) {
     return;
   }
-
-  activeVideoPlayerElement = playerElement;
-
-  const syncControls = () => {
-    const duration = Number.isFinite(playerElement.duration) ? playerElement.duration : 0;
-    const currentTime = Number.isFinite(playerElement.currentTime) ? playerElement.currentTime : 0;
-    const ratio = duration > 0 ? Math.max(0, Math.min(1, currentTime / duration)) : 0;
-    const progressPercent = Math.round(ratio * 100);
-    const isPlaying = !playerElement.paused && !playerElement.ended;
-
-    progressElement.value = String(Math.round(ratio * 1000));
-    progressElement.style.setProperty("--video-progress", `${progressPercent}%`);
-    toggleButton.setAttribute("aria-label", isPlaying ? "暂停视频" : "播放视频");
-    indicatorElement.classList.remove("is-play", "is-pause");
-    indicatorElement.classList.add("is-visible", isPlaying ? "is-pause" : "is-play");
-  };
-
-  syncVideoPlayerControlUI = syncControls;
 
   const tryPlay = () => {
     const playPromise = playerElement.play();
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch(() => {});
     }
-  };
 
-  const handleProgressInput = () => {
-    const duration = Number.isFinite(playerElement.duration) ? playerElement.duration : 0;
-    const ratio = Number(progressElement.value) / 1000;
-    if (duration > 0 && Number.isFinite(ratio)) {
-      playerElement.currentTime = Math.max(0, Math.min(duration, duration * ratio));
+    if (typeof playerElement.webkitEnterFullscreen === "function") {
+      try {
+        playerElement.webkitEnterFullscreen();
+      } catch (error) {
+        // Ignore fullscreen failures and fall back to inline native controls.
+      }
     }
-    syncControls();
   };
-
-  progressElement.addEventListener("input", handleProgressInput);
-
-  playerElement.addEventListener("timeupdate", syncControls);
-  playerElement.addEventListener("loadedmetadata", syncControls);
-  playerElement.addEventListener("durationchange", syncControls);
-  playerElement.addEventListener("play", syncControls);
-  playerElement.addEventListener("pause", syncControls);
-  playerElement.addEventListener("ended", syncControls);
   playerElement.addEventListener("loadedmetadata", tryPlay, { once: true });
   playerElement.addEventListener("canplay", tryPlay, { once: true });
-  syncControls();
   window.requestAnimationFrame(tryPlay);
 }
 
 function renderPage() {
   const currentPage = getCurrentPage();
   syncDocumentTitle(currentPage);
-
-  if (currentPage !== "video-player") {
-    activeVideoPlayerElement = null;
-    syncVideoPlayerControlUI = null;
-  }
 
   if (currentPage === "profile-message") {
     markProfileMessagesAsRead();
@@ -4981,34 +4916,6 @@ app.addEventListener("click", (event) => {
       window.location.hash = "video-player";
       return;
     }
-
-    if (action === "close-video-player") {
-      if (activeVideoPlayerElement) {
-        activeVideoPlayerElement.pause();
-      }
-      window.location.hash = "article-detail";
-      return;
-    }
-
-    if (action === "toggle-video-player") {
-      if (!activeVideoPlayerElement) {
-        return;
-      }
-
-      if (activeVideoPlayerElement.paused || activeVideoPlayerElement.ended) {
-        const playPromise = activeVideoPlayerElement.play();
-        if (playPromise && typeof playPromise.catch === "function") {
-          playPromise.catch(() => {});
-        }
-      } else {
-        activeVideoPlayerElement.pause();
-      }
-
-    if (typeof syncVideoPlayerControlUI === "function") {
-      syncVideoPlayerControlUI();
-    }
-    return;
-  }
 
     if (action === "go-article-prev") {
       if (appState.articleDetailSource === "message") {
