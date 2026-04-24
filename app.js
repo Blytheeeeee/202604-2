@@ -73,6 +73,7 @@ const assets = {
   articleDetailNextArrowIcon: "./assets/figma/articleDetailNextArrowIcon-1d485d93-0d83-4357-b73d-bd50f09cfd07.svg",
   articleDetailVideoImage: "./assets/figma/articleDetailVideoImage-441c930e-f493-476c-b00a-d3637fb909c6.jpg",
   articleDetailVideoPlayOverlay: "./assets/figma/articleDetailVideoPlayOverlay-f87b8dfb-4d0e-4fbf-b0ba-c836997a547e.svg",
+  articleDetailVideoFile: "./assets/video/live-course-demo.mov",
   articleDetailPneumoniaImage: "./assets/figma/articleDetailPneumoniaImage-6963dd95-923a-4008-821a-5f0f10153d55.png",
   articleDetailMessageSputumImage: "./assets/figma/articleDetailMessageSputumImage-4a2776cd-1a9a-4cd0-9bde-d81efd86a0a2.png",
   articleDetailMessageAudioPlayIcon: "./assets/figma/articleDetailMessageAudioPlayIcon-562745ea-a0bc-4056-8e40-741c6ea37463.svg",
@@ -89,7 +90,7 @@ const assets = {
   profileMessageNurseLayerTop: "./assets/figma/profileMessageNurseLayerTop-b1fc7886-e01f-48bd-84c7-978353191c86.svg",
   profileConsultWardMarker: "./assets/figma/profileConsultWardMarker-0a87702e-a65b-4323-91f8-b6cbea50f205.svg",
   profileConsultEmptyImage: "./assets/figma/profileConsultEmptyImage-0a3145cb-47a4-4722-9432-a0105c85f494.svg",
-  secondaryReturnBg: "./assets/figma/secondaryReturnBg-5b365bb4-04c8-4739-99c9-133f25f12ce7.svg"
+  
 };
 
 const cards = [
@@ -239,9 +240,19 @@ const PROFILE_PERSONAL_STORAGE_KEY = "qingtian-profile-personal-v1";
 const PROFILE_MESSAGE_UNREAD_STORAGE_KEY = "qingtian-profile-message-unread-v1";
 const PROFILE_SESSION_USER_KEY = "qingtian-session-user-v1";
 const SECONDARY_RETURN_POSITION_STORAGE_KEY = "qingtian-secondary-return-position-v1";
+const API_BASE_URL =
+  typeof globalThis.__QINGTIAN_API_BASE_URL__ === "string"
+    ? globalThis.__QINGTIAN_API_BASE_URL__.trim().replace(/\/+$/, "")
+    : "";
+const API_PROFILE_PERSONAL_ENDPOINT = "/api/profile-personal";
+const API_PROFILE_MESSAGE_STATE_ENDPOINT = "/api/profile-message-state";
 const API_USER_STATE_ENDPOINT = "/api/user-state";
 const API_REQUEST_TIMEOUT_MS = 5000;
 const LIVE_ENTER_URL = "";
+
+function buildApiUrl(pathname) {
+  return `${API_BASE_URL}${pathname}`;
+}
 
 function createGuestSessionUserId() {
   return `guest-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
@@ -392,6 +403,8 @@ const app = document.getElementById("app");
 let profileSaveToastTimer = 0;
 let profileRegionData = [];
 let profileRegionDataLoadPromise = null;
+let activeVideoPlayerElement = null;
+let syncVideoPlayerControlUI = null;
 
 function clampArticleDetailIndex(index) {
   return Math.max(0, Math.min(articleListItems.length - 1, index));
@@ -682,7 +695,7 @@ async function fetchUserStateFromServer() {
     return null;
   }
 
-  const endpoint = `${API_USER_STATE_ENDPOINT}?userId=${encodeURIComponent(appState.sessionUserId)}`;
+  const endpoint = `${buildApiUrl(API_USER_STATE_ENDPOINT)}?userId=${encodeURIComponent(appState.sessionUserId)}`;
   const response = await fetchWithTimeout(endpoint, {
     method: "GET",
     headers: {
@@ -703,7 +716,7 @@ async function persistUserStateToServer(partialState) {
     return false;
   }
 
-  const response = await fetchWithTimeout(API_USER_STATE_ENDPOINT, {
+  const response = await fetchWithTimeout(buildApiUrl(API_USER_STATE_ENDPOINT), {
     method: "PUT",
     headers: {
       Accept: "application/json",
@@ -718,15 +731,89 @@ async function persistUserStateToServer(partialState) {
   return response.ok;
 }
 
-async function hydrateUserStateFromServer() {
-  let payload;
+async function fetchProfilePersonalDataFromServer() {
+  if (!appState.sessionUserId) {
+    return null;
+  }
 
-  try {
-    payload = await fetchUserStateFromServer();
-  } catch (error) {
+  const endpoint = `${buildApiUrl(API_PROFILE_PERSONAL_ENDPOINT)}?userId=${encodeURIComponent(appState.sessionUserId)}`;
+  const response = await fetchWithTimeout(endpoint, {
+    method: "GET",
+    headers: {
+      Accept: "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch profile personal data: ${response.status}`);
+  }
+
+  const payload = await response.json();
+  return payload && typeof payload === "object" ? payload : null;
+}
+
+async function persistProfilePersonalDataToServer(payload) {
+  if (!appState.sessionUserId || !payload || typeof payload !== "object") {
     return false;
   }
 
+  const response = await fetchWithTimeout(buildApiUrl(API_PROFILE_PERSONAL_ENDPOINT), {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId: appState.sessionUserId,
+      profilePersonalData: payload
+    })
+  });
+
+  return response.ok;
+}
+
+async function fetchProfileMessageStateFromServer() {
+  if (!appState.sessionUserId) {
+    return null;
+  }
+
+  const endpoint = `${buildApiUrl(API_PROFILE_MESSAGE_STATE_ENDPOINT)}?userId=${encodeURIComponent(appState.sessionUserId)}`;
+  const response = await fetchWithTimeout(endpoint, {
+    method: "GET",
+    headers: {
+      Accept: "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch profile message state: ${response.status}`);
+  }
+
+  const payload = await response.json();
+  return payload && typeof payload === "object" ? payload : null;
+}
+
+async function persistProfileMessageStateToServer(profileMessageUnreadCount) {
+  if (!appState.sessionUserId) {
+    return false;
+  }
+
+  const response = await fetchWithTimeout(buildApiUrl(API_PROFILE_MESSAGE_STATE_ENDPOINT), {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId: appState.sessionUserId,
+      profileMessageUnreadCount
+    })
+  });
+
+  return response.ok;
+}
+
+function applyRemoteUserStatePayload(payload) {
   if (!payload || typeof payload !== "object") {
     return false;
   }
@@ -749,6 +836,36 @@ async function hydrateUserStateFromServer() {
     }
   }
 
+  return hasServerState;
+}
+
+async function hydrateUserStateFromServer() {
+  let hasServerState = false;
+  const [profileResult, messageResult] = await Promise.allSettled([
+    fetchProfilePersonalDataFromServer(),
+    fetchProfileMessageStateFromServer()
+  ]);
+
+  if (profileResult.status === "fulfilled") {
+    hasServerState = applyRemoteUserStatePayload(profileResult.value) || hasServerState;
+  }
+
+  if (messageResult.status === "fulfilled") {
+    hasServerState = applyRemoteUserStatePayload(messageResult.value) || hasServerState;
+  }
+
+  if (!hasServerState) {
+    let legacyPayload;
+
+    try {
+      legacyPayload = await fetchUserStateFromServer();
+    } catch (error) {
+      return false;
+    }
+
+    hasServerState = applyRemoteUserStatePayload(legacyPayload);
+  }
+
   if (hasServerState) {
     renderPage();
   }
@@ -762,7 +879,10 @@ async function persistProfilePersonalData() {
   let remoteSaved = false;
 
   try {
-    remoteSaved = await persistUserStateToServer({ profilePersonalData: payload });
+    remoteSaved = await persistProfilePersonalDataToServer(payload);
+    if (!remoteSaved) {
+      remoteSaved = await persistUserStateToServer({ profilePersonalData: payload });
+    }
   } catch (error) {
     remoteSaved = false;
   }
@@ -782,6 +902,12 @@ async function persistProfileMessageUnreadCount() {
   persistProfileMessageUnreadCountToLocal(appState.profileMessageUnreadCount);
 
   try {
+    const remoteSaved = await persistProfileMessageStateToServer(appState.profileMessageUnreadCount);
+
+    if (remoteSaved) {
+      return true;
+    }
+
     return await persistUserStateToServer({
       profileMessageUnreadCount: appState.profileMessageUnreadCount
     });
@@ -1670,6 +1796,8 @@ function renderStatusBar(page) {
 function getPageTitle(page) {
   return page === "live"
     ? "科普直播"
+    : page === "video-player"
+      ? "视频播放"
     : page === "search"
       ? "搜索"
     : page === "profile-personal"
@@ -1821,7 +1949,18 @@ function renderHomeBody() {
           </button>
 
           <button class="search-box" type="button" data-action="open-search-page" aria-label="搜索文章、疾病">
-            <span class="search-box-icon" aria-hidden="true"></span>
+            <span class="search-box-icon" aria-hidden="true">
+              <svg class="inline-svg-icon inline-svg-icon--article-search" viewBox="0 0 20 20" width="20" height="20">
+                <image
+                  href="${assets.articleListInputSearchIcon}"
+                  x="2.5"
+                  y="2.5"
+                  width="14.714"
+                  height="14.714"
+                  preserveAspectRatio="xMidYMid meet"
+                />
+              </svg>
+            </span>
             <span>搜索文章、疾病</span>
           </button>
         </div>
@@ -3664,10 +3803,20 @@ function renderArticleDetailBody() {
           <section class="article-detail-video-content">
             <h2>${selectedArticle.title}</h2>
 
-            <div class="article-detail-video-card" aria-hidden="true">
-              <img src="${assets.articleDetailVideoImage}" alt="" class="article-detail-video-image" />
-              <span class="article-detail-video-mask"></span>
-              <img src="${assets.articleDetailVideoPlayOverlay}" alt="" class="article-detail-video-play-overlay" />
+            <div class="article-detail-video-card">
+              <video
+                class="article-detail-video-preview"
+                src="${assets.articleDetailVideoFile}"
+                preload="auto"
+                muted
+                playsinline
+                webkit-playsinline="true"
+                x5-playsinline="true"
+                aria-label="视频封面"
+              ></video>
+              <button class="article-detail-video-overlay" type="button" data-action="open-video-player" aria-label="播放视频">
+                <span class="article-detail-video-overlay-icon" aria-hidden="true"></span>
+              </button>
             </div>
 
             <p class="article-detail-video-tip">以上宣教视频由山西白求恩医院提供，请您认真观看</p>
@@ -3797,6 +3946,46 @@ function renderArticleDetailBody() {
   `;
 }
 
+function renderVideoPlayerBody() {
+  return `
+    <section class="video-player-page">
+      <video
+        class="video-player-page-video"
+        data-role="video-player-page"
+        src="${assets.articleDetailVideoFile}"
+        autoplay
+        preload="auto"
+        playsinline
+        webkit-playsinline="true"
+        x5-playsinline="true"
+        x5-video-player-type="h5-page"
+        x5-video-player-fullscreen="true"
+      ></video>
+
+      <button class="video-player-close-button" type="button" data-action="close-video-player" aria-label="退出视频播放">
+        <span aria-hidden="true">&times;</span>
+      </button>
+
+      <button class="video-player-touch-layer" type="button" data-action="toggle-video-player" aria-label="播放或暂停视频">
+        <span class="video-player-center-indicator" data-role="video-player-indicator" aria-hidden="true"></span>
+      </button>
+
+      <div class="video-player-bottom-controls">
+        <input
+          class="video-player-progress"
+          data-role="video-player-progress"
+          type="range"
+          min="0"
+          max="1000"
+          step="1"
+          value="0"
+          aria-label="视频播放进度"
+        />
+      </div>
+    </section>
+  `;
+}
+
 function renderBottomTabbar(activePage) {
   const tabs = [
     { page: "home", label: "宣教中心" },
@@ -3852,7 +4041,6 @@ function renderSecondaryReturnButton(page) {
 
   return `
     <button class="secondary-return-button" type="button" data-action="${action}" aria-label="返回"${positionStyle}>
-      <img src="${assets.secondaryReturnBg}" alt="" class="secondary-return-button-bg" aria-hidden="true" />
       <span class="secondary-return-button-text">返回</span>
     </button>
   `;
@@ -3862,6 +4050,8 @@ function renderPhone(page) {
   const bodyMarkup =
     page === "live"
       ? renderLiveBody()
+      : page === "video-player"
+        ? renderVideoPlayerBody()
       : page === "profile-consult"
         ? renderProfileConsultBody()
       : page === "profile-message"
@@ -3896,6 +4086,7 @@ function getCurrentPage() {
   const hash = window.location.hash.replace(/^#/, "");
   return (
     hash === "live" ||
+    hash === "video-player" ||
     hash === "profile" ||
     hash === "profile-consult" ||
     hash === "profile-message" ||
@@ -3911,10 +4102,12 @@ function getCurrentPage() {
 function clampSecondaryReturnButtonPosition(left, top, phoneElement, buttonElement) {
   const maxLeft = Math.max(0, phoneElement.clientWidth - buttonElement.offsetWidth);
   const maxTop = Math.max(0, phoneElement.clientHeight - buttonElement.offsetHeight);
+  const clampedLeft = Math.max(0, Math.min(maxLeft, left));
+  const clampedTop = Math.max(0, Math.min(maxTop, top));
 
   return {
-    left: Math.max(0, Math.min(maxLeft, left)),
-    top: Math.max(0, Math.min(maxTop, top))
+    left: Math.round(clampedLeft),
+    top: Math.round(clampedTop)
   };
 }
 
@@ -4062,9 +4255,108 @@ function setupSecondaryReturnButtonDrag() {
   });
 }
 
+function setupArticleDetailVideoPreview() {
+  const previewElement = app.querySelector(".article-detail-video-preview");
+
+  if (!previewElement) {
+    return;
+  }
+
+  const showFirstFrame = () => {
+    try {
+      previewElement.pause();
+      const targetTime = previewElement.duration && Number.isFinite(previewElement.duration)
+        ? Math.min(0.04, Math.max(0.001, previewElement.duration / 1000))
+        : 0.04;
+      previewElement.currentTime = targetTime;
+    } catch (error) {
+      // Ignore seek failures.
+    }
+  };
+
+  previewElement.addEventListener("loadedmetadata", showFirstFrame, { once: true });
+  previewElement.addEventListener("loadeddata", showFirstFrame, { once: true });
+
+  if (previewElement.readyState >= 2) {
+    showFirstFrame();
+    return;
+  }
+
+  try {
+    previewElement.load();
+  } catch (error) {
+    // Ignore load failures.
+  }
+}
+
+function setupVideoPlayerPage() {
+  const playerElement = app.querySelector("[data-role='video-player-page']");
+  const toggleButton = app.querySelector(".video-player-touch-layer");
+  const progressElement = app.querySelector("[data-role='video-player-progress']");
+  const indicatorElement = app.querySelector("[data-role='video-player-indicator']");
+
+  if (!playerElement || !toggleButton || !progressElement || !indicatorElement) {
+    activeVideoPlayerElement = null;
+    syncVideoPlayerControlUI = null;
+    return;
+  }
+
+  activeVideoPlayerElement = playerElement;
+
+  const syncControls = () => {
+    const duration = Number.isFinite(playerElement.duration) ? playerElement.duration : 0;
+    const currentTime = Number.isFinite(playerElement.currentTime) ? playerElement.currentTime : 0;
+    const ratio = duration > 0 ? Math.max(0, Math.min(1, currentTime / duration)) : 0;
+    const progressPercent = Math.round(ratio * 100);
+    const isPlaying = !playerElement.paused && !playerElement.ended;
+
+    progressElement.value = String(Math.round(ratio * 1000));
+    progressElement.style.setProperty("--video-progress", `${progressPercent}%`);
+    toggleButton.setAttribute("aria-label", isPlaying ? "暂停视频" : "播放视频");
+    indicatorElement.classList.remove("is-play", "is-pause");
+    indicatorElement.classList.add("is-visible", isPlaying ? "is-pause" : "is-play");
+  };
+
+  syncVideoPlayerControlUI = syncControls;
+
+  const tryPlay = () => {
+    const playPromise = playerElement.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {});
+    }
+  };
+
+  const handleProgressInput = () => {
+    const duration = Number.isFinite(playerElement.duration) ? playerElement.duration : 0;
+    const ratio = Number(progressElement.value) / 1000;
+    if (duration > 0 && Number.isFinite(ratio)) {
+      playerElement.currentTime = Math.max(0, Math.min(duration, duration * ratio));
+    }
+    syncControls();
+  };
+
+  progressElement.addEventListener("input", handleProgressInput);
+
+  playerElement.addEventListener("timeupdate", syncControls);
+  playerElement.addEventListener("loadedmetadata", syncControls);
+  playerElement.addEventListener("durationchange", syncControls);
+  playerElement.addEventListener("play", syncControls);
+  playerElement.addEventListener("pause", syncControls);
+  playerElement.addEventListener("ended", syncControls);
+  playerElement.addEventListener("loadedmetadata", tryPlay, { once: true });
+  playerElement.addEventListener("canplay", tryPlay, { once: true });
+  syncControls();
+  window.requestAnimationFrame(tryPlay);
+}
+
 function renderPage() {
   const currentPage = getCurrentPage();
   syncDocumentTitle(currentPage);
+
+  if (currentPage !== "video-player") {
+    activeVideoPlayerElement = null;
+    syncVideoPlayerControlUI = null;
+  }
 
   if (currentPage === "profile-message") {
     markProfileMessagesAsRead();
@@ -4124,6 +4416,11 @@ function renderPage() {
 
   if (currentPage === "article-detail") {
     syncArticleDetailAudioUI();
+    setupArticleDetailVideoPreview();
+  }
+
+  if (currentPage === "video-player") {
+    setupVideoPlayerPage();
   }
 }
 
@@ -4679,6 +4976,39 @@ app.addEventListener("click", (event) => {
       window.location.hash = "article-detail";
       return;
     }
+
+    if (action === "open-video-player") {
+      window.location.hash = "video-player";
+      return;
+    }
+
+    if (action === "close-video-player") {
+      if (activeVideoPlayerElement) {
+        activeVideoPlayerElement.pause();
+      }
+      window.location.hash = "article-detail";
+      return;
+    }
+
+    if (action === "toggle-video-player") {
+      if (!activeVideoPlayerElement) {
+        return;
+      }
+
+      if (activeVideoPlayerElement.paused || activeVideoPlayerElement.ended) {
+        const playPromise = activeVideoPlayerElement.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(() => {});
+        }
+      } else {
+        activeVideoPlayerElement.pause();
+      }
+
+    if (typeof syncVideoPlayerControlUI === "function") {
+      syncVideoPlayerControlUI();
+    }
+    return;
+  }
 
     if (action === "go-article-prev") {
       if (appState.articleDetailSource === "message") {
